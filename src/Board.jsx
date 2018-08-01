@@ -6,13 +6,46 @@ class Board extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      boardLayout: getInitialState(props)
+      boardLayout: getInitialState(props),
+      revealed: []
     };
+    this.bindEvents();
+  }
+
+  bindEvents() {
+    this.onCellClick = this.onCellClick.bind(this);
+  }
+
+  onCellClick(coord) {
+    const { revealed } = this.state;
+    this.setState(
+      Object.assign({}, this.state, {
+        revealed: [...revealed, coord]
+      })
+    );
+  }
+
+  getCellType({ row, col }) {
+    const { boardLayout, revealed } = this.state;
+
+    // check if revealed
+    if (!revealed.find(r => r.row === row && r.col === col)) {
+      return null;
+    }
+
+    return boardLayout[row][col];
   }
 
   render() {
     const { boardLayout } = this.state;
-    const board = boardLayout.map(row => <tr className="row">{row.map(() => <td className="cell" />)}</tr>);
+    const board = boardLayout.map((row, i) => (
+      <tr className="row">
+        {row.map((_, j) => {
+          const coord = { row: i, col: j };
+          return <Cell type={this.getCellType(coord)} onClick={() => this.onCellClick(coord)} />;
+        })}
+      </tr>
+    ));
     return (
       <table>
         <tbody>{board}</tbody>
