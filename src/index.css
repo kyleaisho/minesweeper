@@ -1,0 +1,11 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+}
+
+.cell {
+  height: 3em;
+  width: 3em;
+  background-color: aqua;
+}
