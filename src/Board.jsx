@@ -6,6 +6,7 @@ class Board extends Component {
   constructor(props) {
     super(props);
     this.state = {
+      gameOver: false,
       boardLayout: getInitialState(props),
       revealed: []
     };
@@ -16,7 +17,29 @@ class Board extends Component {
     this.onCellClick = this.onCellClick.bind(this);
   }
 
+  componentDidUpdate() {
+    const { gameOver } = this.state;
+    if (gameOver) {
+      setTimeout(() => alert('Game Over bub!'), 60);
+    }
+  }
+
   onCellClick({ row, col }) {
+    const { boardLayout, gameOver } = this.state;
+
+    if (gameOver) {
+      return;
+    }
+
+    const { type } = boardLayout[row][col];
+
+    if (type === CellType.BOMB) {
+      this.revealCell({ row, col });
+      this.setState(Object.assign({}, this.state, { gameOver: true }));
+
+      return;
+    }
+
     this.cascadeReveal([{ row, col }]);
   }
 
