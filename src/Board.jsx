@@ -7,8 +7,7 @@ class Board extends Component {
     super(props);
     this.state = {
       gameOver: false,
-      boardLayout: getInitialState(props),
-      revealed: []
+      boardLayout: getInitialState(props)
     };
     this.bindEvents();
   }
@@ -81,12 +80,13 @@ class Board extends Component {
   render() {
     const { boardLayout } = this.state;
     const board = boardLayout.map((row, i) => (
-      <tr className="row">
+      <tr className="row" key={`${i}`}>
         {row.map((_, j) => {
           const coord = { row: i, col: j };
           const cellProps = boardLayout[i][j];
           return (
             <Cell
+              key={`${i}_${j}`}
               type={cellProps.type}
               onClick={() => this.onCellClick(coord)}
               text={cellProps.count}
