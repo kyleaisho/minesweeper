@@ -4,8 +4,25 @@ body {
   font-family: sans-serif;
 }
 
-.cell {
+td {
   height: 3em;
   width: 3em;
+  text-align: center;
+}
+
+.cell {
   background-color: aqua;
+}
+
+.bomb {
+  background-color: red;
+}
+
+.number {
+  background-color: aliceblue;
+}
+
+.number.revealed,
+.cell.revealed {
+  background-color: aliceblue;
 }

@@ -16,24 +16,43 @@ class Board extends Component {
     this.onCellClick = this.onCellClick.bind(this);
   }
 
-  onCellClick(coord) {
-    const { revealed } = this.state;
+  onCellClick({ row, col }) {
+    this.cascadeReveal([{ row, col }]);
+  }
+
+  revealCell({ row, col }) {
+    const { boardLayout } = this.state;
+    boardLayout[row][col].revealed = true;
     this.setState(
       Object.assign({}, this.state, {
-        revealed: [...revealed, coord]
+        boardLayout: boardLayout
       })
     );
   }
 
-  getCellType({ row, col }) {
-    const { boardLayout, revealed } = this.state;
+  getNeighbors({ row, col }) {
+    const top = { row: row - 1, col: col };
+    const bottom = { row: row + 1, col: col };
+    const left = { row: row, col: col - 1 };
+    const right = { row: row, col: col + 1 };
 
-    // check if revealed
-    if (!revealed.find(r => r.row === row && r.col === col)) {
-      return null;
-    }
+    return [top, bottom, left, right];
+  }
 
-    return boardLayout[row][col];
+  cascadeReveal(coords) {
+    const { boardLayout } = this.state;
+    coords.forEach(({ row, col }) => {
+      const r = boardLayout[row];
+      const cell = r && r[col];
+      if (cell && !cell.revealed) {
+        this.revealCell({ row, col });
+        if (cell.type === CellType.EMPTY) {
+          // cascade on neighbours
+          const neighbours = this.getNeighbors({ row, col });
+          this.cascadeReveal(neighbours);
+        }
+      }
+    });
   }
 
   render() {
@@ -42,7 +61,15 @@ class Board extends Component {
       <tr className="row">
         {row.map((_, j) => {
           const coord = { row: i, col: j };
-          return <Cell type={this.getCellType(coord)} onClick={() => this.onCellClick(coord)} />;
+          const cellProps = boardLayout[i][j];
+          return (
+            <Cell
+              type={cellProps.type}
+              onClick={() => this.onCellClick(coord)}
+              text={cellProps.count}
+              revealed={cellProps.revealed}
+            />
+          );
         })}
       </tr>
     ));
@@ -57,6 +84,21 @@ class Board extends Component {
 const getRandomInt = max => Math.floor(Math.random() * max);
 const isMineAtCoord = (boardLayout, { row, col }) => boardLayout[row][col] === CellType.BOMB;
 
+const getSurroundingBombs = (boardLayout, row, col) => {
+  let count = 0;
+
+  for (let i = row - 1; i <= row + 1; i++) {
+    for (let j = col - 1; j <= col + 1; j++) {
+      const row = boardLayout[i];
+      const cell = row && row[j];
+      if (cell && cell.type === CellType.BOMB) {
+        count++;
+      }
+    }
+  }
+
+  return count;
+};
 const getInitialState = ({ height, width, mines }) => {
   const boardLayout = [];
 
@@ -71,8 +113,26 @@ const getInitialState = ({ height, width, mines }) => {
     const coord = { row, col };
 
     if (!isMineAtCoord(boardLayout, coord)) {
-      boardLayout[row][col] = CellType.BOMB;
+      boardLayout[row][col] = {
+        type: CellType.BOMB,
+        revealed: false,
+        count: 0
+      };
       mines--;
+    }
+  }
+
+  for (let i = 0; i < boardLayout.length; i++) {
+    for (let j = 0; j < width; j++) {
+      const cell = boardLayout[i][j];
+      if (!cell) {
+        const number = getSurroundingBombs(boardLayout, i, j);
+        boardLayout[i][j] = {
+          revealed: false,
+          type: number ? CellType.NUMBER : CellType.EMPTY,
+          count: number
+        };
+      }
     }
   }
 

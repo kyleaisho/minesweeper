@@ -3,5 +3,6 @@ module.exports = {
     NUMBER: 0,
     BOMB: 1,
     FLAG: 2,
-  },
+    EMPTY: 3
+  }
 };
